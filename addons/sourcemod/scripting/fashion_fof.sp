@@ -15,7 +15,7 @@
 #include <sdktools>
 
 #define PLUGIN_VERSION "0.1"
-#define PLUGIN_NAME "_plugin_name_"
+#define PLUGIN_NAME "[FoF] Fashion"
 
 public Plugin:myinfo =
 {
@@ -75,8 +75,19 @@ public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
     if(!IsFashionEnabled()) return;
     if(!IsFashionEnabledForClient(client)) return;
 
+    CreateTimer(0.0, DelaySpawn, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
+}
+
+public Action:DelaySpawn(Handle:Timer, any:userid)
+{
+    new client = GetClientOfUserId(userid);
+    if( !(0 < client < MaxClients)) return Plugin_Stop;
+
+    //PrintToConsole(0, "Hit spawn %d: skin %d, body %d", client, g_Skin[client], g_BodyGroup[client]);
     SetClientSkin(client, g_Skin[client]);
     SetClientBodyGroup(client, g_BodyGroup[client]);
+
+    return Plugin_Stop;
 }
 
 bool:IsFashionEnabled()
@@ -93,11 +104,11 @@ RandomizeClientFashion(client)
 {
     new skin = GetRandomInt(0, MAX_SKINS - 1);
     g_Skin[client] = skin;
-    SetClientSkin(client, skin);
+    //SetClientSkin(client, skin);
 
     new body_group = GetRandomInt(1, MAX_BODY_GROUPS - 1);
     g_BodyGroup[client] = body_group;
-    SetClientBodyGroup(client, skin);
+    //SetClientBodyGroup(client, body_group);
 }
 
 SetClientSkin(client, skin)
