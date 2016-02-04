@@ -34,6 +34,11 @@ new bool:g_IsFashionEnabled[MAXPLAYERS+1] = {false, ...};
 new g_Skin[MAXPLAYERS+1]      = {0, ...};
 new g_BodyGroup[MAXPLAYERS+1] = {0, ...};
 
+new g_Model_Ghost;
+new g_Model_Skeleton;
+new g_Model_test1;
+new g_Model_test2;
+
 new Handle:g_Cvar_Enabled = INVALID_HANDLE;
 
 public OnPluginStart()
@@ -42,6 +47,12 @@ public OnPluginStart()
     g_Cvar_Enabled = CreateConVar("sm_fashion_enabled", "1", "Enabled");
 
     RegConsoleCmd("sm_fashion", Command_Fashion, "Randomize client's fashion");
+    RegAdminCmd("sm_test1", Command_Test, ADMFLAG_SLAY, "TEST");//TODO
+    RegAdminCmd("sm_test2", Command_Test2, ADMFLAG_SLAY, "TEST");//TODO
+    RegAdminCmd("sm_test3", Command_Test3, ADMFLAG_SLAY, "TEST");//TODO
+    RegAdminCmd("sm_test4", Command_Test4, ADMFLAG_SLAY, "TEST");//TODO
+    RegAdminCmd("sm_test5", Command_Test5, ADMFLAG_SLAY, "TEST");//TODO
+    RegAdminCmd("sm_test6", Command_Test6, ADMFLAG_SLAY, "TEST");//TODO
 
     HookEvent("player_spawn", Event_PlayerSpawn);
 
@@ -58,6 +69,14 @@ public OnClientConnected(client)
     RandomizeClientFashion(client);
 }
 
+public OnMapStart()
+{
+    g_Model_Ghost = PrecacheModel("models/npc/ghost.mdl");
+    g_Model_Skeleton = PrecacheModel("models/skeleton.mdl");
+    g_Model_test1 = PrecacheModel("models/humans/corpse1.mdl");
+    g_Model_test2 = PrecacheModel("models/humans/group03/female_01.mdl");
+}
+
 public Action:Command_Fashion(client, args)
 {
     if(client)
@@ -67,6 +86,72 @@ public Action:Command_Fashion(client, args)
 
     return Plugin_Handled;
 }
+
+//TODO
+public Action:Command_Test(client, args)
+{
+    if(client)
+    {
+        decl String:model[256];
+        GetClientModel(client, model, sizeof(model));
+        PrintToChat(client, "%s", model);
+    }
+
+    return Plugin_Handled;
+}
+public Action:Command_Test2(client, args)
+{
+    if(client)
+    {
+        decl String:path[256];
+        GetCmdArgString(path, sizeof(path));
+        new index = StringToInt(path);
+        SetClientModelIndex(client, index);
+    }
+
+    return Plugin_Handled;
+}
+
+public Action:Command_Test3(client, args)
+{
+    if(client)
+    {
+        SetClientModelIndex(client, g_Model_Ghost);
+    }
+
+    return Plugin_Handled;
+}
+
+public Action:Command_Test4(client, args)
+{
+    if(client)
+    {
+        SetClientModelIndex(client, g_Model_Skeleton);
+    }
+
+    return Plugin_Handled;
+}
+
+public Action:Command_Test5(client, args)
+{
+    if(client)
+    {
+        SetClientModelIndex(client, g_Model_test1);
+    }
+
+    return Plugin_Handled;
+}
+
+public Action:Command_Test6(client, args)
+{
+    if(client)
+    {
+        SetClientModelIndex(client, g_Model_test2);
+    }
+
+    return Plugin_Handled;
+}
+
 
 public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
@@ -119,4 +204,9 @@ SetClientSkin(client, skin)
 SetClientBodyGroup(client, body_group)
 {
     SetEntProp(client, Prop_Data, "m_nBody", body_group);
+}
+
+SetClientModelIndex(client, index)
+{
+    SetEntProp(client, Prop_Data, "m_nModelIndex", index, 2);
 }
