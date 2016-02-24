@@ -32,6 +32,7 @@
 
 #include <sourcemod>
 #include <sdktools>
+#include <clientprefs>
 
 #define PLUGIN_VERSION "0.1"
 #define PLUGIN_NAME "[FoF] Fashion"
@@ -45,7 +46,7 @@ public Plugin:myinfo =
     url = "https://github.com/CrimsonTautology/fashion_fof"
 };
 
-#define MAX_SKINS 3
+#define MAX_CLOTHES 3
 #define MAX_MASKS 3
 #define MAX_HATS 8
 #define MAX_BODY_GROUPS 512
@@ -53,11 +54,15 @@ public Plugin:myinfo =
 #define HAT_OFFSET 2
 #define MASK_OFFSET 16
 
-new bool:g_IsFashionEnabled[MAXPLAYERS+1] = {false, ...};
+new g_Clothes[MAXPLAYERS+1] = {0, ...};
+new g_Hat[MAXPLAYERS+1]     = {0, ...};
+new g_Mask[MAXPLAYERS+1]    = {0, ...};
 
-new g_Skin[MAXPLAYERS+1]      = {0, ...};
-new g_Hat[MAXPLAYERS+1] = {0, ...};
-new g_Mask[MAXPLAYERS+1] = {0, ...};
+new Handle:g_Cookie_Clothes       = INVALID_HANDLE;
+new Handle:g_Cookie_Hat           = INVALID_HANDLE;
+new Handle:g_Cookie_Mask          = INVALID_HANDLE;
+new Handle:g_Cookie_WasRandomized = INVALID_HANDLE;
+
 
 new g_Model_Vigilante;
 new g_Model_Desperado;
@@ -79,18 +84,49 @@ public OnPluginStart()
 
     HookEvent("player_spawn", Event_PlayerSpawn);
 
+    g_Cookie_Clothes = RegClientCookie("fashion_clothes", "Selected player clothes", CookieAccess_Private);
+    g_Cookie_Hat  = RegClientCookie("fashion_hat",  "Selected player hat",  CookieAccess_Private);
+    g_Cookie_Mask = RegClientCookie("fashion_mask", "Selected player mask", CookieAccess_Private);
+    g_Cookie_WasRandomized = RegClientCookie("fashion_was_randomized", "Was this client auto randomized", CookieAccess_Private);
+
     AutoExecConfig();
 }
 
-public OnClientConnected(client)
+public OnClientCookiesCached(client)
 {
-    //TODO default to false
-    g_IsFashionEnabled[client] = true;
+    new String:buffer[11];
+    new type_of;
 
-    g_Skin[client] = 0;
-    g_Hat[client] = 0;
-    g_Mask[client] = 0;
+    GetClientCookie(client, g_Cookie_Clothes, buffer, sizeof(buffer));
+    type_of = StringToInt(buffer);
+    if (strlen(buffer) > 0 && type_of < MAX_CLOTHES){
+        g_Clothes[client] = type_of;
+    }else{
+        g_Clothes[client] = 0;
+    }
+
+    GetClientCookie(client, g_Cookie_Hat, buffer, sizeof(buffer));
+    type_of = StringToInt(buffer);
+    if (strlen(buffer) > 0 && type_of < MAX_HATS){
+        g_Hat[client] = type_of;
+    }else{
+        g_Hat[client] = 0;
+    }
+
+    GetClientCookie(client, g_Cookie_Mask, buffer, sizeof(buffer));
+    type_of = StringToInt(buffer);
+    if (strlen(buffer) > 0 && type_of < MAX_MASKS){
+        g_Mask[client] = type_of;
+    }else{
+        g_Mask[client] = 0;
+    }
+
+    GetClientCookie(client, g_Cookie_WasRandomized, buffer, sizeof(buffer));
+    if (strlen(buffer) > 0 && !bool:StringToInt(buffer)){
+        RandomizeClientFashion(client);
+    }
 }
+
 
 public OnMapStart()
 {
@@ -142,7 +178,6 @@ public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
     new client = GetClientOfUserId(GetEventInt(event, "userid"));
 
     if(!IsFashionEnabled()) return;
-    if(!IsFashionEnabledForClient(client)) return;
 
     CreateTimer(0.0, DelaySpawn, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
 }
@@ -162,15 +197,10 @@ bool:IsFashionEnabled()
     return GetConVarBool(g_Cvar_Enabled);
 }
 
-bool:IsFashionEnabledForClient(client)
-{
-    return g_IsFashionEnabled[client];
-}
-
 RandomizeClientFashion(client)
 {
-    new skin = GetRandomInt(0, MAX_SKINS - 1);
-    g_Skin[client] = skin;
+    new clothes = GetRandomInt(0, MAX_CLOTHES - 1);
+    g_Clothes[client] = clothes;
 
     new mask = GetRandomInt(0, MAX_MASKS - 1);
     g_Mask[client] = mask;
@@ -204,20 +234,56 @@ SetClientModelIndex(client, index)
     SetEntProp(client, Prop_Data, "m_nModelIndex", index, 2);
 }
 
+SetHat(client, hat)
+{
+    if(hat < 0 || hat >= MAX_HATS) return;
+
+    new String:tmp[11];
+    IntToString(hat, tmp, sizeof(tmp));
+
+    g_Hat[client] = hat;
+    SetClientCookie(client, g_Cookie_Hat, tmp);
+    RecalculateFashion(client);
+}
+
+SetMask(client, mask)
+{
+    if(mask < 0 || mask >= MAX_MASKS) return;
+
+    new String:tmp[11];
+    IntToString(mask, tmp, sizeof(tmp));
+
+    g_Mask[client] = mask;
+    SetClientCookie(client, g_Cookie_Mask, tmp);
+    RecalculateFashion(client);
+}
+
+SetClothes(client, clothes)
+{
+    if(clothes < 0 || clothes >= MAX_CLOTHES) return;
+
+    new String:tmp[11];
+    IntToString(clothes, tmp, sizeof(tmp));
+
+    g_Clothes[client] = clothes;
+    SetClientCookie(client, g_Cookie_Clothes, tmp);
+    RecalculateFashion(client);
+}
+
 RecalculateFashion(client)
 {
     new hat = g_Hat[client];
     new mask = g_Mask[client];
-    new skin = g_Skin[client];
+    new clothes = g_Clothes[client];
     new model = GetClientModelIndex(client);
 
     //Bandidos and rangers can not have non-default skins
     if(model == g_Model_Bandido || model == g_Model_Ranger)
     {
-        skin = 0;
+        clothes = 0;
     }
 
-    SetClientSkin(client, skin);
+    SetClientSkin(client, clothes);
     SetClientBodyGroup(client, (hat * HAT_OFFSET) + (mask * MASK_OFFSET));
 }
 
@@ -292,8 +358,7 @@ public ChangeHatMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                 new client = param1;
                 new String:info[32];
                 GetMenuItem(menu, param2, info, sizeof(info));
-                g_Hat[client] = StringToInt(info);
-                RecalculateFashion(client);
+                SetHat(client, StringToInt(info));
             }
         case MenuAction_End: CloseHandle(menu);
     }
@@ -324,8 +389,7 @@ public ChangeMaskMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                 new client = param1;
                 new String:info[32];
                 GetMenuItem(menu, param2, info, sizeof(info));
-                g_Mask[client] = StringToInt(info);
-                RecalculateFashion(client);
+                SetMask(client, StringToInt(info));
             }
         case MenuAction_End: CloseHandle(menu);
     }
@@ -334,7 +398,7 @@ public ChangeMaskMenuHandler(Handle:menu, MenuAction:action, param1, param2)
 public ChangeClothesMenu(client)
 {
     new Handle:menu = CreateMenu(ChangeClothesMenuHandler);
-    new selected = g_Skin[client];
+    new selected = g_Clothes[client];
 
     SetMenuTitle(menu, "Choose your clothes");
 
@@ -356,8 +420,7 @@ public ChangeClothesMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                 new String:info[32];
                 GetMenuItem(menu, param2, info, sizeof(info));
                 new client = param1;
-                g_Skin[client] = StringToInt(info);
-                RecalculateFashion(client);
+                SetClothes(client, StringToInt(info));
             }
         case MenuAction_End: CloseHandle(menu);
     }
