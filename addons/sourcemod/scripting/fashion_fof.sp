@@ -73,7 +73,7 @@ public OnMapStart()
 {
     g_Model_Ghost = PrecacheModel("models/npc/ghost.mdl");
     g_Model_Skeleton = PrecacheModel("models/skeleton.mdl");
-    g_Model_test1 = PrecacheModel("models/humans/corpse1.mdl");
+    g_Model_test1 = PrecacheModel("models/props/forest/train.mdl");
     g_Model_test2 = PrecacheModel("models/humans/group03/female_01.mdl");
 }
 
