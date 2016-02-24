@@ -49,7 +49,6 @@ public Plugin:myinfo =
 #define MAX_CLOTHES 3
 #define MAX_MASKS 3
 #define MAX_HATS 8
-#define MAX_BODY_GROUPS 512
 
 #define HAT_OFFSET 2
 #define MASK_OFFSET 16
