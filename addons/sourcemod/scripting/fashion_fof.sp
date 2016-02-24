@@ -121,7 +121,7 @@ public OnClientCookiesCached(client)
     }
 
     GetClientCookie(client, g_Cookie_WasRandomized, buffer, sizeof(buffer));
-    if (strlen(buffer) > 0 && !bool:StringToInt(buffer)){
+    if (!bool:StringToInt(buffer)){
         RandomizeClientFashion(client);
     }
 }
@@ -274,11 +274,23 @@ RecalculateFashion(client)
     new clothes = g_Clothes[client];
     new model = GetClientModelIndex(client);
 
-    //Bandidos and rangers can not have non-default skins
+    //Bandidos and Rangers can not have non-default skins
     if(model == g_Model_Bandido || model == g_Model_Ranger)
     {
         clothes = 0;
     }
+
+    //Vigilantes need to invert the first two hats
+    if(model == g_Model_Vigilante && hat == 1)
+    {
+        hat = 2;
+    }else if(model == g_Model_Vigilante && hat == 2)
+    {
+        hat = 1;
+    }
+
+    //Rangers can not have the first(white) hat but there is nothing to address here
+    //Bandidos and Rangers can not have the second(black) mask but there is nothing to address here
 
     SetClientSkin(client, clothes);
     SetClientBodyGroup(client, (hat * HAT_OFFSET) + (mask * MASK_OFFSET));
