@@ -141,7 +141,6 @@ public Action:Command_Fashion(client, args)
 {
     if(client)
     {
-        //RandomizeClientFashion(client);
         ShowFashionMenu(client);
     }
 
@@ -199,13 +198,15 @@ bool:IsFashionEnabled()
 RandomizeClientFashion(client)
 {
     new clothes = GetRandomInt(0, MAX_CLOTHES - 1);
-    g_Clothes[client] = clothes;
+    SetClothes(client, clothes);
 
     new mask = GetRandomInt(0, MAX_MASKS - 1);
-    g_Mask[client] = mask;
+    SetMask(client, mask);
 
     new hat = GetRandomInt(0, MAX_HATS - 1);
-    g_Hat[client] = hat;
+    SetHat(client, hat);
+
+    SetClientCookie(client, g_Cookie_WasRandomized, "1");
 }
 
 SetClientSkin(client, skin)
@@ -242,7 +243,6 @@ SetHat(client, hat)
 
     g_Hat[client] = hat;
     SetClientCookie(client, g_Cookie_Hat, tmp);
-    RecalculateFashion(client);
 }
 
 SetMask(client, mask)
@@ -254,7 +254,6 @@ SetMask(client, mask)
 
     g_Mask[client] = mask;
     SetClientCookie(client, g_Cookie_Mask, tmp);
-    RecalculateFashion(client);
 }
 
 SetClothes(client, clothes)
@@ -266,7 +265,6 @@ SetClothes(client, clothes)
 
     g_Clothes[client] = clothes;
     SetClientCookie(client, g_Cookie_Clothes, tmp);
-    RecalculateFashion(client);
 }
 
 RecalculateFashion(client)
@@ -358,6 +356,7 @@ public ChangeHatMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                 new String:info[32];
                 GetMenuItem(menu, param2, info, sizeof(info));
                 SetHat(client, StringToInt(info));
+                RecalculateFashion(client);
             }
         case MenuAction_End: CloseHandle(menu);
     }
@@ -389,6 +388,7 @@ public ChangeMaskMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                 new String:info[32];
                 GetMenuItem(menu, param2, info, sizeof(info));
                 SetMask(client, StringToInt(info));
+                RecalculateFashion(client);
             }
         case MenuAction_End: CloseHandle(menu);
     }
@@ -420,6 +420,7 @@ public ChangeClothesMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                 GetMenuItem(menu, param2, info, sizeof(info));
                 new client = param1;
                 SetClothes(client, StringToInt(info));
+                RecalculateFashion(client);
             }
         case MenuAction_End: CloseHandle(menu);
     }
