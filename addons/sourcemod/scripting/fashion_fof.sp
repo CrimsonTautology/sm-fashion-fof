@@ -34,10 +34,12 @@ new bool:g_IsFashionEnabled[MAXPLAYERS+1] = {false, ...};
 new g_Skin[MAXPLAYERS+1]      = {0, ...};
 new g_BodyGroup[MAXPLAYERS+1] = {0, ...};
 
+new g_Model_Vigilante;
+new g_Model_Desperado;
+new g_Model_Bandido;
+new g_Model_Ranger;
 new g_Model_Ghost;
 new g_Model_Skeleton;
-new g_Model_test1;
-new g_Model_test2;
 
 new Handle:g_Cvar_Enabled = INVALID_HANDLE;
 
@@ -71,10 +73,12 @@ public OnClientConnected(client)
 
 public OnMapStart()
 {
+    g_Model_Vigilante = PrecacheModel("models/playermodels/player1.mdl");
+    g_Model_Desperado = PrecacheModel("models/playermodels/player2.mdl");
+    g_Model_Bandido = PrecacheModel("models/playermodels/bandito.mdl");
+    g_Model_Ranger = PrecacheModel("models/playermodels/frank.mdl");
     g_Model_Ghost = PrecacheModel("models/npc/ghost.mdl");
     g_Model_Skeleton = PrecacheModel("models/skeleton.mdl");
-    g_Model_test1 = PrecacheModel("models/props/forest/train.mdl");
-    g_Model_test2 = PrecacheModel("models/humans/group03/female_01.mdl");
 }
 
 public Action:Command_Fashion(client, args)
@@ -86,72 +90,6 @@ public Action:Command_Fashion(client, args)
 
     return Plugin_Handled;
 }
-
-//TODO
-public Action:Command_Test(client, args)
-{
-    if(client)
-    {
-        decl String:model[256];
-        GetClientModel(client, model, sizeof(model));
-        PrintToChat(client, "%s", model);
-    }
-
-    return Plugin_Handled;
-}
-public Action:Command_Test2(client, args)
-{
-    if(client)
-    {
-        decl String:path[256];
-        GetCmdArgString(path, sizeof(path));
-        new index = StringToInt(path);
-        SetClientModelIndex(client, index);
-    }
-
-    return Plugin_Handled;
-}
-
-public Action:Command_Test3(client, args)
-{
-    if(client)
-    {
-        SetClientModelIndex(client, g_Model_Ghost);
-    }
-
-    return Plugin_Handled;
-}
-
-public Action:Command_Test4(client, args)
-{
-    if(client)
-    {
-        SetClientModelIndex(client, g_Model_Skeleton);
-    }
-
-    return Plugin_Handled;
-}
-
-public Action:Command_Test5(client, args)
-{
-    if(client)
-    {
-        SetClientModelIndex(client, g_Model_test1);
-    }
-
-    return Plugin_Handled;
-}
-
-public Action:Command_Test6(client, args)
-{
-    if(client)
-    {
-        SetClientModelIndex(client, g_Model_test2);
-    }
-
-    return Plugin_Handled;
-}
-
 
 public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
