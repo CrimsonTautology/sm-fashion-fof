@@ -332,13 +332,13 @@ public ChangeHatMenu(client)
     SetMenuTitle(menu, "Choose Your Hat");
 
     AddMenuItem(menu , "0"  , "None", 0 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-    AddMenuItem(menu , "1"  , "Bronson", 1 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-    AddMenuItem(menu , "2"  , "Van Cleef", 2 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-    AddMenuItem(menu , "3"  , "Marvin", 3 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-    AddMenuItem(menu , "4"  , "Eastwood", 4 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-    AddMenuItem(menu , "5"  , "Wayne", 5 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-    AddMenuItem(menu , "6"  , "Tuco", 6 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-    AddMenuItem(menu , "7"  , "Lincoln", 7 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "1"  , "Harmonica White", 1 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "2"  , "Angel Eyes Black", 2 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "3"  , "Wanderin' Star", 3 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "4"  , "The Hat With No Name", 4 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "5"  , "A Pilgrim's Silverbelly", 5 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "6"  , "Ugly Sombrero", 6 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "7"  , "Abe's Topper", 7 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
     SetMenuPagination(menu, MENU_NO_PAGINATION);
 
