@@ -34,7 +34,7 @@
 #include <sdktools>
 #include <clientprefs>
 
-#define PLUGIN_VERSION "0.1"
+#define PLUGIN_VERSION "0.2"
 #define PLUGIN_NAME "[FoF] Fashion"
 
 public Plugin:myinfo =
