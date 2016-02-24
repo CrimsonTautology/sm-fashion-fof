@@ -22,7 +22,7 @@
  sombraro +12
  top hat +14
 
- bandanas
+ masks
  none +0
  white +16
  black +32
@@ -46,17 +46,18 @@ public Plugin:myinfo =
 };
 
 #define MAX_SKINS 3
+#define MAX_MASKS 3
+#define MAX_HATS 8
 #define MAX_BODY_GROUPS 512
 
 #define HAT_OFFSET 2
-#define BANDANA_OFFSET 16
+#define MASK_OFFSET 16
 
 new bool:g_IsFashionEnabled[MAXPLAYERS+1] = {false, ...};
 
 new g_Skin[MAXPLAYERS+1]      = {0, ...};
-new g_BodyGroup[MAXPLAYERS+1] = {0, ...};
 new g_Hat[MAXPLAYERS+1] = {0, ...};
-new g_Bandana[MAXPLAYERS+1] = {0, ...};
+new g_Mask[MAXPLAYERS+1] = {0, ...};
 
 new g_Model_Vigilante;
 new g_Model_Desperado;
@@ -86,12 +87,9 @@ public OnClientConnected(client)
     //TODO default to false
     g_IsFashionEnabled[client] = true;
 
-    //g_Skin[client]      = 0;
-    //g_BodyGroup[client] = 0;
-    //RandomizeClientFashion(client);
-
+    g_Skin[client] = 0;
     g_Hat[client] = 0;
-    g_Bandana[client] = 0;
+    g_Mask[client] = 0;
 }
 
 public OnMapStart()
@@ -122,8 +120,6 @@ public Action:Command_Test(client, args)
         new body_group = GetClientBodyGroup(client);
         body_group += 2;
         SetClientBodyGroup(client, body_group);
-
-        PrintToChat(client, "%s", body_group);
     }
 
     return Plugin_Handled;
@@ -136,8 +132,6 @@ public Action:Command_Test2(client, args)
         new body_group = GetClientBodyGroup(client);
         body_group -= 2;
         SetClientBodyGroup(client, body_group);
-
-        PrintToChat(client, "%s", body_group);
     }
 
     return Plugin_Handled;
@@ -158,9 +152,7 @@ public Action:DelaySpawn(Handle:Timer, any:userid)
     new client = GetClientOfUserId(userid);
     if( !(0 < client < MaxClients)) return Plugin_Stop;
 
-    //PrintToConsole(0, "Hit spawn %d: skin %d, body %d", client, g_Skin[client], g_BodyGroup[client]);
-    SetClientSkin(client, g_Skin[client]);
-    RecalculateBodyGroup(client);
+    RecalculateFashion(client);
 
     return Plugin_Stop;
 }
@@ -179,11 +171,12 @@ RandomizeClientFashion(client)
 {
     new skin = GetRandomInt(0, MAX_SKINS - 1);
     g_Skin[client] = skin;
-    //SetClientSkin(client, skin);
 
-    new body_group = GetRandomInt(1, MAX_BODY_GROUPS - 1);
-    g_BodyGroup[client] = body_group;
-    //SetClientBodyGroup(client, body_group);
+    new mask = GetRandomInt(0, MAX_MASKS - 1);
+    g_Mask[client] = mask;
+
+    new hat = GetRandomInt(0, MAX_HATS - 1);
+    g_Hat[client] = hat;
 }
 
 SetClientSkin(client, skin)
@@ -201,17 +194,33 @@ SetClientBodyGroup(client, body_group)
     SetEntProp(client, Prop_Data, "m_nBody", body_group);
 }
 
-RecalculateBodyGroup(client)
+GetClientModelIndex(client)
 {
-    new hat = g_Hat[client];
-    new bandana = g_Bandana[client];
-    SetClientBodyGroup(client, (hat * HAT_OFFSET) + (bandana * BANDANA_OFFSET));
+    return GetEntProp(client, Prop_Data, "m_nModelIndex");
 }
 
 SetClientModelIndex(client, index)
 {
     SetEntProp(client, Prop_Data, "m_nModelIndex", index, 2);
 }
+
+RecalculateFashion(client)
+{
+    new hat = g_Hat[client];
+    new mask = g_Mask[client];
+    new skin = g_Skin[client];
+    new model = GetClientModelIndex(client);
+
+    //Bandidos and rangers can not have non-default skins
+    if(model == g_Model_Bandido || model == g_Model_Ranger)
+    {
+        skin = 0;
+    }
+
+    SetClientSkin(client, skin);
+    SetClientBodyGroup(client, (hat * HAT_OFFSET) + (mask * MASK_OFFSET));
+}
+
 
 
 //Menus
@@ -221,9 +230,9 @@ ShowFashionMenu(client)
     SetMenuTitle(menu,"Fistful of Fashion");
 
     AddMenuItem(menu, "1", "Hat", ITEMDRAW_DEFAULT);
-    AddMenuItem(menu, "2", "Bandana", ITEMDRAW_DEFAULT);
+    AddMenuItem(menu, "2", "Mask", ITEMDRAW_DEFAULT);
     AddMenuItem(menu, "3", "Clothes", ITEMDRAW_DEFAULT);
-    //AddMenuItem(menu, 4, "Skin", ITEMDRAW_DEFAULT);
+    AddMenuItem(menu, "4", "Model", ITEMDRAW_DEFAULT);
 
     DisplayMenu(menu, client, 20);
 }
@@ -242,9 +251,9 @@ public FashionMenuSelected(Handle:menu, MenuAction:action, param1, param2)
                 switch (selected)
                 {
                     case 1: { ChangeHatMenu(client); }
-                    case 2: { ChangeBandanaMenu(client); }
+                    case 2: { ChangeMaskMenu(client); }
                     case 3: { ChangeClothesMenu(client); }
-                    //case 4: { ChangeSkinMenu(client); }
+                    case 4: { ChangeModelMenu(client); }
 
                 }
             }
@@ -255,16 +264,18 @@ public FashionMenuSelected(Handle:menu, MenuAction:action, param1, param2)
 public ChangeHatMenu(client)
 {
     new Handle:menu = CreateMenu(ChangeHatMenuHandler);
-    SetMenuTitle(menu, "Choose your hat");
+    new selected = g_Hat[client];
 
-    AddMenuItem(menu , "0"  , "None");
-    AddMenuItem(menu , "1"  , "Bronson");
-    AddMenuItem(menu , "2"  , "Van Cleef");
-    AddMenuItem(menu , "3"  , "Marvin");
-    AddMenuItem(menu , "4"  , "Eastwood");
-    AddMenuItem(menu , "5"  , "Wayne");
-    AddMenuItem(menu , "6"  , "Tuco");
-    AddMenuItem(menu , "7"  , "Lincoln");
+    SetMenuTitle(menu, "Choose Your Hat");
+
+    AddMenuItem(menu , "0"  , "None", 0 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "1"  , "Bronson", 1 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "2"  , "Van Cleef", 2 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "3"  , "Marvin", 3 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "4"  , "Eastwood", 4 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "5"  , "Wayne", 5 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "6"  , "Tuco", 6 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "7"  , "Lincoln", 7 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
     SetMenuPagination(menu, MENU_NO_PAGINATION);
 
@@ -282,27 +293,29 @@ public ChangeHatMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                 new String:info[32];
                 GetMenuItem(menu, param2, info, sizeof(info));
                 g_Hat[client] = StringToInt(info);
-                RecalculateBodyGroup(client);
+                RecalculateFashion(client);
             }
         case MenuAction_End: CloseHandle(menu);
     }
 }
 
-public ChangeBandanaMenu(client)
+public ChangeMaskMenu(client)
 {
-    new Handle:menu = CreateMenu(ChangeBandanaMenuHandler);
-    SetMenuTitle(menu, "Choose your bandana");
+    new Handle:menu = CreateMenu(ChangeMaskMenuHandler);
+    new selected = g_Mask[client];
 
-    AddMenuItem(menu , "0"  , "None");
-    AddMenuItem(menu , "1"  , "White");
-    AddMenuItem(menu , "2"  , "Black");
+    SetMenuTitle(menu, "Choose Your Mask");
+
+    AddMenuItem(menu , "0"  , "None", 0 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "1"  , "White", 1 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "2"  , "Black", 2 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
     SetMenuPagination(menu, MENU_NO_PAGINATION);
 
     DisplayMenu(menu, client, 20);
 }
 
-public ChangeBandanaMenuHandler(Handle:menu, MenuAction:action, param1, param2)
+public ChangeMaskMenuHandler(Handle:menu, MenuAction:action, param1, param2)
 {
     switch (action)
     {
@@ -311,8 +324,8 @@ public ChangeBandanaMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                 new client = param1;
                 new String:info[32];
                 GetMenuItem(menu, param2, info, sizeof(info));
-                g_Bandana[client] = StringToInt(info);
-                RecalculateBodyGroup(client);
+                g_Mask[client] = StringToInt(info);
+                RecalculateFashion(client);
             }
         case MenuAction_End: CloseHandle(menu);
     }
@@ -321,11 +334,13 @@ public ChangeBandanaMenuHandler(Handle:menu, MenuAction:action, param1, param2)
 public ChangeClothesMenu(client)
 {
     new Handle:menu = CreateMenu(ChangeClothesMenuHandler);
+    new selected = g_Skin[client];
+
     SetMenuTitle(menu, "Choose your clothes");
 
-    AddMenuItem(menu , "0"  , "Style 1");
-    AddMenuItem(menu , "1"  , "Style 2");
-    AddMenuItem(menu , "2"  , "Style 3");
+    AddMenuItem(menu , "0"  , "Buono", 0 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "1"  , "Brutto", 1 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+    AddMenuItem(menu , "2"  , "Cattivo", 2 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
     SetMenuPagination(menu, MENU_NO_PAGINATION);
 
@@ -340,10 +355,52 @@ public ChangeClothesMenuHandler(Handle:menu, MenuAction:action, param1, param2)
             {
                 new String:info[32];
                 GetMenuItem(menu, param2, info, sizeof(info));
-                new skin = StringToInt(info);
                 new client = param1;
-                SetClientSkin(client, skin);
-                PrintToServer("hit changeclothes %d", skin);
+                g_Skin[client] = StringToInt(info);
+                RecalculateFashion(client);
+            }
+        case MenuAction_End: CloseHandle(menu);
+    }
+}
+
+public ChangeModelMenu(client)
+{
+    new Handle:menu = CreateMenu(ChangeModelMenuHandler);
+    SetMenuTitle(menu, "Choose your Model");
+
+    AddMenuItem(menu , "0"  , "Vigilante");
+    AddMenuItem(menu , "1"  , "Desperado");
+    AddMenuItem(menu , "2"  , "Bandido");
+    AddMenuItem(menu , "3"  , "Ranger");
+    AddMenuItem(menu , "4"  , "Ghost");
+    AddMenuItem(menu , "5"  , "Skeleton");
+
+    SetMenuPagination(menu, MENU_NO_PAGINATION);
+
+    DisplayMenu(menu, client, 20);
+}
+
+public ChangeModelMenuHandler(Handle:menu, MenuAction:action, param1, param2)
+{
+    switch (action)
+    {
+        case MenuAction_Select:
+            {
+                new String:info[32];
+                GetMenuItem(menu, param2, info, sizeof(info));
+                new model = StringToInt(info);
+                new client = param1;
+
+                switch (model)
+                {
+                    case 0: { SetClientModelIndex(client, g_Model_Vigilante); }
+                    case 1: { SetClientModelIndex(client, g_Model_Desperado); }
+                    case 2: { SetClientModelIndex(client, g_Model_Bandido); }
+                    case 3: { SetClientModelIndex(client, g_Model_Ranger); }
+                    case 4: { SetClientModelIndex(client, g_Model_Ghost); }
+                    case 5: { SetClientModelIndex(client, g_Model_Skeleton); }
+                }
+
             }
         case MenuAction_End: CloseHandle(menu);
     }
