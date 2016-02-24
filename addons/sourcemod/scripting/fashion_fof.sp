@@ -9,6 +9,25 @@
  *
  */
 
+ /*
+ default 16
+
+ hats
+ none +0
+ black +2
+ white +4
+ derby +6
+ black whitestripe +8
+ gray +10
+ sombraro +12
+ top hat +14
+
+ bandanas
+ none +0
+ white +16
+ black +32
+ */
+
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -29,10 +48,15 @@ public Plugin:myinfo =
 #define MAX_SKINS 3
 #define MAX_BODY_GROUPS 512
 
+#define HAT_OFFSET 2
+#define BANDANA_OFFSET 16
+
 new bool:g_IsFashionEnabled[MAXPLAYERS+1] = {false, ...};
 
 new g_Skin[MAXPLAYERS+1]      = {0, ...};
 new g_BodyGroup[MAXPLAYERS+1] = {0, ...};
+new g_Hat[MAXPLAYERS+1] = {0, ...};
+new g_Bandana[MAXPLAYERS+1] = {0, ...};
 
 new g_Model_Vigilante;
 new g_Model_Desperado;
@@ -48,13 +72,9 @@ public OnPluginStart()
     CreateConVar("sm_fashion_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
     g_Cvar_Enabled = CreateConVar("sm_fashion_enabled", "1", "Enabled");
 
-    RegConsoleCmd("sm_fashion", Command_Fashion, "Randomize client's fashion");
+    RegConsoleCmd("sm_fashion", Command_Fashion, "Change your Style");
     RegAdminCmd("sm_test1", Command_Test, ADMFLAG_SLAY, "TEST");//TODO
     RegAdminCmd("sm_test2", Command_Test2, ADMFLAG_SLAY, "TEST");//TODO
-    RegAdminCmd("sm_test3", Command_Test3, ADMFLAG_SLAY, "TEST");//TODO
-    RegAdminCmd("sm_test4", Command_Test4, ADMFLAG_SLAY, "TEST");//TODO
-    RegAdminCmd("sm_test5", Command_Test5, ADMFLAG_SLAY, "TEST");//TODO
-    RegAdminCmd("sm_test6", Command_Test6, ADMFLAG_SLAY, "TEST");//TODO
 
     HookEvent("player_spawn", Event_PlayerSpawn);
 
@@ -68,7 +88,10 @@ public OnClientConnected(client)
 
     //g_Skin[client]      = 0;
     //g_BodyGroup[client] = 0;
-    RandomizeClientFashion(client);
+    //RandomizeClientFashion(client);
+
+    g_Hat[client] = 0;
+    g_Bandana[client] = 0;
 }
 
 public OnMapStart()
@@ -85,7 +108,36 @@ public Action:Command_Fashion(client, args)
 {
     if(client)
     {
-        RandomizeClientFashion(client);
+        //RandomizeClientFashion(client);
+        ShowFashionMenu(client);
+    }
+
+    return Plugin_Handled;
+}
+
+public Action:Command_Test(client, args)
+{
+    if(client)
+    {
+        new body_group = GetClientBodyGroup(client);
+        body_group += 2;
+        SetClientBodyGroup(client, body_group);
+
+        PrintToChat(client, "%s", body_group);
+    }
+
+    return Plugin_Handled;
+}
+
+public Action:Command_Test2(client, args)
+{
+    if(client)
+    {
+        new body_group = GetClientBodyGroup(client);
+        body_group -= 2;
+        SetClientBodyGroup(client, body_group);
+
+        PrintToChat(client, "%s", body_group);
     }
 
     return Plugin_Handled;
@@ -108,7 +160,7 @@ public Action:DelaySpawn(Handle:Timer, any:userid)
 
     //PrintToConsole(0, "Hit spawn %d: skin %d, body %d", client, g_Skin[client], g_BodyGroup[client]);
     SetClientSkin(client, g_Skin[client]);
-    SetClientBodyGroup(client, g_BodyGroup[client]);
+    RecalculateBodyGroup(client);
 
     return Plugin_Stop;
 }
@@ -139,12 +191,160 @@ SetClientSkin(client, skin)
     SetEntProp(client, Prop_Data, "m_nSkin", skin);
 }
 
+GetClientBodyGroup(client)
+{
+    return GetEntProp(client, Prop_Data, "m_nBody");
+}
+
 SetClientBodyGroup(client, body_group)
 {
     SetEntProp(client, Prop_Data, "m_nBody", body_group);
 }
 
+RecalculateBodyGroup(client)
+{
+    new hat = g_Hat[client];
+    new bandana = g_Bandana[client];
+    SetClientBodyGroup(client, (hat * HAT_OFFSET) + (bandana * BANDANA_OFFSET));
+}
+
 SetClientModelIndex(client, index)
 {
     SetEntProp(client, Prop_Data, "m_nModelIndex", index, 2);
+}
+
+
+//Menus
+ShowFashionMenu(client)
+{
+    new Handle:menu = CreateMenu(FashionMenuSelected);
+    SetMenuTitle(menu,"Fistful of Fashion");
+
+    AddMenuItem(menu, "1", "Hat", ITEMDRAW_DEFAULT);
+    AddMenuItem(menu, "2", "Bandana", ITEMDRAW_DEFAULT);
+    AddMenuItem(menu, "3", "Clothes", ITEMDRAW_DEFAULT);
+    //AddMenuItem(menu, 4, "Skin", ITEMDRAW_DEFAULT);
+
+    DisplayMenu(menu, client, 20);
+}
+
+public FashionMenuSelected(Handle:menu, MenuAction:action, param1, param2)
+{
+    decl String:tmp[32], selected;
+    GetMenuItem(menu, param2, tmp, sizeof(tmp));
+    selected = StringToInt(tmp);
+    new client = param1;
+
+    switch (action)
+    {
+        case MenuAction_Select:
+            {
+                switch (selected)
+                {
+                    case 1: { ChangeHatMenu(client); }
+                    case 2: { ChangeBandanaMenu(client); }
+                    case 3: { ChangeClothesMenu(client); }
+                    //case 4: { ChangeSkinMenu(client); }
+
+                }
+            }
+        case MenuAction_End: CloseHandle(menu);
+    }
+}
+
+public ChangeHatMenu(client)
+{
+    new Handle:menu = CreateMenu(ChangeHatMenuHandler);
+    SetMenuTitle(menu, "Choose your hat");
+
+    AddMenuItem(menu , "0"  , "None");
+    AddMenuItem(menu , "1"  , "Bronson");
+    AddMenuItem(menu , "2"  , "Van Cleef");
+    AddMenuItem(menu , "3"  , "Marvin");
+    AddMenuItem(menu , "4"  , "Eastwood");
+    AddMenuItem(menu , "5"  , "Wayne");
+    AddMenuItem(menu , "6"  , "Tuco");
+    AddMenuItem(menu , "7"  , "Lincoln");
+
+    SetMenuPagination(menu, MENU_NO_PAGINATION);
+
+
+    DisplayMenu(menu, client, 20);
+}
+
+public ChangeHatMenuHandler(Handle:menu, MenuAction:action, param1, param2)
+{
+    switch (action)
+    {
+        case MenuAction_Select:
+            {
+                new client = param1;
+                new String:info[32];
+                GetMenuItem(menu, param2, info, sizeof(info));
+                g_Hat[client] = StringToInt(info);
+                RecalculateBodyGroup(client);
+            }
+        case MenuAction_End: CloseHandle(menu);
+    }
+}
+
+public ChangeBandanaMenu(client)
+{
+    new Handle:menu = CreateMenu(ChangeBandanaMenuHandler);
+    SetMenuTitle(menu, "Choose your bandana");
+
+    AddMenuItem(menu , "0"  , "None");
+    AddMenuItem(menu , "1"  , "White");
+    AddMenuItem(menu , "2"  , "Black");
+
+    SetMenuPagination(menu, MENU_NO_PAGINATION);
+
+    DisplayMenu(menu, client, 20);
+}
+
+public ChangeBandanaMenuHandler(Handle:menu, MenuAction:action, param1, param2)
+{
+    switch (action)
+    {
+        case MenuAction_Select:
+            {
+                new client = param1;
+                new String:info[32];
+                GetMenuItem(menu, param2, info, sizeof(info));
+                g_Bandana[client] = StringToInt(info);
+                RecalculateBodyGroup(client);
+            }
+        case MenuAction_End: CloseHandle(menu);
+    }
+}
+
+public ChangeClothesMenu(client)
+{
+    new Handle:menu = CreateMenu(ChangeClothesMenuHandler);
+    SetMenuTitle(menu, "Choose your clothes");
+
+    AddMenuItem(menu , "0"  , "Style 1");
+    AddMenuItem(menu , "1"  , "Style 2");
+    AddMenuItem(menu , "2"  , "Style 3");
+
+    SetMenuPagination(menu, MENU_NO_PAGINATION);
+
+    DisplayMenu(menu, client, 20);
+}
+
+public ChangeClothesMenuHandler(Handle:menu, MenuAction:action, param1, param2)
+{
+    switch (action)
+    {
+        case MenuAction_Select:
+            {
+                new String:info[32];
+                GetMenuItem(menu, param2, info, sizeof(info));
+                new skin = StringToInt(info);
+                new client = param1;
+                SetClientSkin(client, skin);
+                PrintToServer("hit changeclothes %d", skin);
+            }
+        case MenuAction_End: CloseHandle(menu);
+    }
 }
