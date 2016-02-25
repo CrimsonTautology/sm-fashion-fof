@@ -49,6 +49,7 @@ public Plugin:myinfo =
 #define MAX_CLOTHES 3
 #define MAX_MASKS 3
 #define MAX_HATS 8
+#define MAX_MODELS 6
 
 #define HAT_OFFSET 2
 #define MASK_OFFSET 16
@@ -152,7 +153,7 @@ public Action:Command_Test(client, args)
     if(client)
     {
         new body_group = GetClientBodyGroup(client);
-        body_group += 2;
+        body_group += 1;
         SetClientBodyGroup(client, body_group);
     }
 
@@ -164,7 +165,7 @@ public Action:Command_Test2(client, args)
     if(client)
     {
         new body_group = GetClientBodyGroup(client);
-        body_group -= 2;
+        body_group -= 1;
         SetClientBodyGroup(client, body_group);
     }
 
@@ -185,6 +186,7 @@ public Action:DelaySpawn(Handle:Timer, any:userid)
     new client = GetClientOfUserId(userid);
     if( !(0 < client < MaxClients)) return Plugin_Stop;
 
+    //RandomizeModel(client);//TODO
     RecalculateFashion(client);
 
     return Plugin_Stop;
@@ -193,6 +195,21 @@ public Action:DelaySpawn(Handle:Timer, any:userid)
 bool:IsFashionEnabled()
 {
     return GetConVarBool(g_Cvar_Enabled);
+}
+
+RandomizeModel(client)
+{
+    new model = GetRandomInt(0, MAX_MODELS - 1);
+
+    switch (model)
+    {
+        case 0: { SetClientModelIndex(client, g_Model_Vigilante); }
+        case 1: { SetClientModelIndex(client, g_Model_Desperado); }
+        case 2: { SetClientModelIndex(client, g_Model_Bandido); }
+        case 3: { SetClientModelIndex(client, g_Model_Ranger); }
+        case 4: { SetClientModelIndex(client, g_Model_Ghost); }
+        case 5: { SetClientModelIndex(client, g_Model_Skeleton); }
+    }
 }
 
 RandomizeClientFashion(client)
