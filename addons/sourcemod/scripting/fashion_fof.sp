@@ -306,6 +306,14 @@ RecalculateFashion(client)
         hat = 1;
     }
 
+    //Skeletons can only have one type of hat, and must be manually set
+    if(model == g_Model_Skeleton && hat > 0)
+    {
+        SetClientSkin(client, clothes);
+        SetClientBodyGroup(client, 1);
+        return;
+    }
+
     //Rangers can not have the first(white) hat but there is nothing to address here
     //Bandidos and Rangers can not have the second(black) mask but there is nothing to address here
 
