@@ -378,7 +378,7 @@ public ChangeHatMenu(client)
     AddMenuItem(menu , "7"  , "Abe's Topper", 7 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
     SetMenuPagination(menu, MENU_NO_PAGINATION);
-
+    SetMenuExitBackButton(menu, true);
 
     DisplayMenu(menu, client, 20);
 }
@@ -411,6 +411,7 @@ public ChangeMaskMenu(client)
     AddMenuItem(menu , "2"  , "Black", 2 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
     SetMenuPagination(menu, MENU_NO_PAGINATION);
+    SetMenuExitBackButton(menu, true);
 
     DisplayMenu(menu, client, 20);
 }
@@ -443,6 +444,7 @@ public ChangeClothesMenu(client)
     AddMenuItem(menu , "2"  , "Cattivo", 2 == selected ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
     SetMenuPagination(menu, MENU_NO_PAGINATION);
+    SetMenuExitBackButton(menu, true);
 
     DisplayMenu(menu, client, 20);
 }
