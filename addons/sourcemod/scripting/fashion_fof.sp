@@ -72,11 +72,13 @@ new g_Model_Ghost;
 new g_Model_Skeleton;
 
 new Handle:g_Cvar_Enabled = INVALID_HANDLE;
+new Handle:g_Cvar_Teamplay = INVALID_HANDLE;
 
 public OnPluginStart()
 {
     CreateConVar("sm_fashion_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
     g_Cvar_Enabled = CreateConVar("sm_fashion_enabled", "1", "Enabled");
+    g_Cvar_Teamplay = FindConVar("mp_teamplay");
 
     RegConsoleCmd("sm_fashion", Command_Fashion, "Change your Style");
     RegAdminCmd("sm_test1", Command_Test, ADMFLAG_SLAY, "TEST");//TODO
@@ -332,7 +334,7 @@ ShowFashionMenu(client)
     AddMenuItem(menu, "1", "Hat", ITEMDRAW_DEFAULT);
     AddMenuItem(menu, "2", "Mask", ITEMDRAW_DEFAULT);
     AddMenuItem(menu, "3", "Clothes", ITEMDRAW_DEFAULT);
-    AddMenuItem(menu, "4", "Model", ITEMDRAW_DEFAULT);
+    AddMenuItem(menu, "4", "Model", GetConVarBool(g_Cvar_Teamplay) ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
     DisplayMenu(menu, client, 20);
 }
