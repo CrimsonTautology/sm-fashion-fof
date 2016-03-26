@@ -26,6 +26,7 @@ task :compile do
   Dir.glob('*.sp') do |f|
     smxfile = f.gsub(/\.sp$/, ".smx")
     puts %x{#{SPCOMP} #{f}  -i"$PWD/include" -o"../plugins/#{smxfile}" -w203 -w204}
+    #puts %x{#{SPCOMP} #{f}  -i"$PWD/include" -o"../plugins/#{smxfile}"}
     puts "compile #{f}"
   end
 end

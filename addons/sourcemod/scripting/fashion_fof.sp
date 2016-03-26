@@ -2,7 +2,7 @@
  * vim: set ts=4 :
  * =============================================================================
  * fashion_fof
- * The Dress-up simmulator for Fistful of Frags that no one wanted.
+ * The Dress-up simulator for Fistful of Frags that no one wanted.
  *
  * Copyright 2015 CrimsonTautology
  * =============================================================================
@@ -34,7 +34,7 @@
 #include <sdktools>
 #include <clientprefs>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.0.1"
 #define PLUGIN_NAME "[FoF] Fashion"
 
 public Plugin:myinfo =
@@ -43,7 +43,7 @@ public Plugin:myinfo =
     author = "CrimsonTautology",
     description = "Customize the player models for Fistful of Frags",
     version = PLUGIN_VERSION,
-    url = "https://github.com/CrimsonTautology/fashion_fof"
+    url = "https://github.com/CrimsonTautology/sm_fashion_fof"
 };
 
 #define MAX_CLOTHES 3
@@ -81,8 +81,6 @@ public OnPluginStart()
     g_Cvar_Teamplay = FindConVar("mp_teamplay");
 
     RegConsoleCmd("sm_fashion", Command_Fashion, "Change your Style");
-    RegAdminCmd("sm_test1", Command_Test, ADMFLAG_SLAY, "TEST");//TODO
-    RegAdminCmd("sm_test2", Command_Test2, ADMFLAG_SLAY, "TEST");//TODO
 
     HookEvent("player_spawn", Event_PlayerSpawn);
 
@@ -150,30 +148,6 @@ public Action:Command_Fashion(client, args)
     return Plugin_Handled;
 }
 
-public Action:Command_Test(client, args)
-{
-    if(client)
-    {
-        new body_group = GetClientBodyGroup(client);
-        body_group += 1;
-        SetClientBodyGroup(client, body_group);
-    }
-
-    return Plugin_Handled;
-}
-
-public Action:Command_Test2(client, args)
-{
-    if(client)
-    {
-        new body_group = GetClientBodyGroup(client);
-        body_group -= 1;
-        SetClientBodyGroup(client, body_group);
-    }
-
-    return Plugin_Handled;
-}
-
 public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
     new client = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -188,7 +162,6 @@ public Action:DelaySpawn(Handle:Timer, any:userid)
     new client = GetClientOfUserId(userid);
     if( !(0 < client < MaxClients)) return Plugin_Stop;
 
-    //RandomizeModel(client);//TODO
     RecalculateFashion(client);
 
     return Plugin_Stop;
