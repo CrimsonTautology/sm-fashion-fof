@@ -70,6 +70,7 @@ new g_Model_Bandido;
 new g_Model_Ranger;
 new g_Model_Ghost;
 new g_Model_Skeleton;
+new g_Model_Zombie;
 
 new Handle:g_Cvar_Enabled = INVALID_HANDLE;
 new Handle:g_Cvar_Teamplay = INVALID_HANDLE;
@@ -136,6 +137,7 @@ public OnMapStart()
     g_Model_Ranger = PrecacheModel("models/playermodels/frank.mdl");
     g_Model_Ghost = PrecacheModel("models/npc/ghost.mdl");
     g_Model_Skeleton = PrecacheModel("models/skeleton.mdl");
+    g_Model_Zombie = PrecacheModel("models/zombies/fof_zombie.mdl");
 }
 
 public Action:Command_Fashion(client, args)
@@ -184,6 +186,7 @@ RandomizeModel(client)
         case 3: { SetClientModelIndex(client, g_Model_Ranger); }
         case 4: { SetClientModelIndex(client, g_Model_Ghost); }
         case 5: { SetClientModelIndex(client, g_Model_Skeleton); }
+        case 6: { SetClientModelIndex(client, g_Model_Zombie); }
     }
 }
 
@@ -451,6 +454,7 @@ public ChangeModelMenu(client)
     AddMenuItem(menu , "3"  , "Ranger");
     AddMenuItem(menu , "4"  , "Ghost");
     AddMenuItem(menu , "5"  , "Skeleton");
+    AddMenuItem(menu , "6"  , "Zombie");
 
     SetMenuPagination(menu, MENU_NO_PAGINATION);
 
@@ -476,6 +480,7 @@ public ChangeModelMenuHandler(Handle:menu, MenuAction:action, param1, param2)
                     case 3: { SetClientModelIndex(client, g_Model_Ranger); }
                     case 4: { SetClientModelIndex(client, g_Model_Ghost); }
                     case 5: { SetClientModelIndex(client, g_Model_Skeleton); }
+                    case 6: { SetClientModelIndex(client, g_Model_Zombie); }
                 }
 
             }
