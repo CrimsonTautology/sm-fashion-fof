@@ -34,7 +34,7 @@
 #include <sdktools>
 #include <clientprefs>
 
-#define PLUGIN_VERSION "1.0.1"
+#define PLUGIN_VERSION "1.0.2"
 #define PLUGIN_NAME "[FoF] Fashion"
 
 public Plugin:myinfo =
@@ -77,7 +77,7 @@ new Handle:g_Cvar_Teamplay = INVALID_HANDLE;
 
 public OnPluginStart()
 {
-    CreateConVar("sm_fashion_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
+    CreateConVar("sm_fashion_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
     g_Cvar_Enabled = CreateConVar("sm_fashion_enabled", "1", "Enabled");
     g_Cvar_Teamplay = FindConVar("mp_teamplay");
 
