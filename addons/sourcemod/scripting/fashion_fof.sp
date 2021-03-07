@@ -85,7 +85,7 @@ public void OnMapStart()
 
 Action Command_Fashion(int client, int args)
 {
-    if(!(0 < client < MaxClients)) return Plugin_Handled;
+    if(!(0 < client <= MaxClients)) return Plugin_Handled;
 
     FashionableClient fclient = FashionableClient(client);
     ShowFashionMenu(fclient);
@@ -104,7 +104,7 @@ void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 void PlayerSpawnDelay(int userid)
 {
     int client = GetClientOfUserId(userid);
-    if(!(0 < client < MaxClients)) return;
+    if(!(0 < client <= MaxClients)) return;
 
     FashionableClient fclient = FashionableClient(client);
     fclient.Refresh();
