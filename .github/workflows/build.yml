@@ -24,4 +24,4 @@ jobs:
           version: ${{ matrix.sm-version }}
 
       - name: Compile SourceMod plugins
-        run: make SPCOMP=spcomp SPFLAGS=-E
+        run: make clean compile test SPCOMP=spcomp SPFLAGS=-E

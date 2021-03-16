@@ -6,7 +6,9 @@ SHELL=/bin/bash
 # directories
 override scripting_dir=addons/sourcemod/scripting
 override include_dir=addons/sourcemod/scripting/include
+override testing_dir=addons/sourcemod/scripting/testsuite
 override plugins_dir=addons/sourcemod/plugins
+override testsuite_dir=addons/sourcemod/plugins/testsuite
 override configs_dir=addons/sourcemod/configs
 override extensions_dir=addons/sourcemod/extensions
 override gamedata_dir=addons/sourcemod/gamedata
@@ -26,9 +28,13 @@ ZIP=zip
 # files
 override sourcefiles=$(wildcard $(scripting_dir)/*.sp)
 override includefiles=$(shell find $(include_dir) -name '*.inc' 2>/dev/null)
+override testfiles=$(wildcard $(testing_dir)/test_*.sp)
 
 override plugins=\
 	$(patsubst $(scripting_dir)/%.sp, $(plugins_dir)/%.smx, $(sourcefiles))
+
+override testsuite=\
+	$(patsubst $(testing_dir)/%.sp, $(testsuite_dir)/%.smx, $(testfiles))
 
 override configs=\
 	$(shell find $(configs_dir) -name '*' -type f 2>/dev/null)
@@ -50,6 +56,7 @@ override disabled=$(addprefix $(plugins_dir)/,\
 	$(notdir $(wildcard $(SRCDS)/$(plugins_dir)/disabled/*.smx)))
 
 vpath %.sp $(scripting_dir)
+vpath %.sp $(testing_dir)
 
 ifeq ($(DEBUG), 1)
 	SPFLAGS+=DEBUG=1
@@ -70,7 +77,7 @@ $(plugins_dir):
 	mkdir -p $@
 
 clean:
-	$(RM) $(plugins_dir)/*.smx $(plugins_dir)/*.asm $(plugins_dir)/*.lst 
+	$(RM) -r $(plugins_dir)
 
 compile: $(plugins)
 
@@ -89,6 +96,10 @@ list:
 	@printf '%s\n' $(sourcefiles)
 	@printf '\ninclude files:\n'
 	@printf '%s\n' $(includefiles)
+	@printf '\ntestsuite:\n'
+	@printf '%s\n' $(testsuite)
+	@printf '\ntest files:\n'
+	@printf '%s\n' $(testfiles)
 	@printf '\nconfigs:\n'
 	@printf '%s\n' $(configs)
 	@printf '\ngamedata:\n'
@@ -102,7 +113,6 @@ install:
 	@# install only plugins that are not in the 'disabled' folder
 	@$(foreach file, $(filter-out $(disabled), $(plugins)),\
 		cp --parents $(file) -t $(SRCDS);)
-	@if [ -n "$(plugins)" ]; then cp -n --parents $(plugins) -t $(SRCDS); fi
 	@if [ -n "$(configs)" ]; then cp -n --parents $(configs) -t $(SRCDS); fi
 	@if [ -n "$(extensions)" ]; then cp -n --parents $(extensions) -t $(SRCDS); fi
 	@if [ -n "$(gamedata)" ]; then cp --parents $(gamedata) -t $(SRCDS); fi
@@ -117,10 +127,25 @@ uninstall:
 		$(addprefix $(SRCDS)/, $(translations))
 	@echo "uninstall $(notdir $(plugins)) from $(SRCDS)"
 
+$(testsuite_dir)/%.smx: %.sp | $(testsuite_dir)
+	$(SPCOMP) $^ -o$@ $(INC) $(SPFLAGS)
+
+$(testsuite_dir):
+	mkdir -p $@
+
+test: $(testsuite)
+
+test-install: test
+	cp --parents $(testsuite) -t $(SRCDS)
+
+test-uninstall:
+	$(RM) $(addprefix $(SRCDS)/, $(testsuite))
+
 release.tar.gz: compile
 	tar cvzf $@ $(release_files) --ignore-failed-read
 
 release.zip: compile
 	$(ZIP) -r $@ $(release_files)
 
-.PHONY: all clean compile tags dos2unix list install uninstall
+.PHONY: all clean compile tags dos2unix list install uninstall test\
+	test-install test-uninstall
