@@ -71,7 +71,6 @@ public void OnClientCookiesCached(int client)
     fclient.LoadFromCookies();
 }
 
-
 public void OnMapStart()
 {
     g_VigilanteModelIndex = PrecacheModel("models/playermodels/player1.mdl");
