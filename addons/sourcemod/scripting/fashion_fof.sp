@@ -16,7 +16,7 @@
 #include <sdktools>
 #include <clientprefs>
 
-#define PLUGIN_VERSION "1.10.0"
+#define PLUGIN_VERSION "1.10.1"
 #define PLUGIN_NAME "[FoF] Fashion"
 
 public Plugin myinfo =
